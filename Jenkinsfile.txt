@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checking out GitHub code'
+            }
+        }
+
+        stage('Python Version') {
+            steps {
+                bat 'python --version'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Automation testing will start here'
+            }
+        }
+    }
+}
