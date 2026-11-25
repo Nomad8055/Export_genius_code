@@ -1,24 +1,86 @@
+
 pipeline {
     agent any
 
+    environment {
+        PYTHON = 'C:\\Users\\EG-QA\\AppData\\Local\\Python\\bin\\python.exe'
+    }
+
     stages {
 
-        stage('Checkout') {
+        stage('Checkout Production Code') {
             steps {
-                echo 'Checking out GitHub code'
+                echo 'Production code checked out from GitHub'
             }
         }
 
         stage('Python Version') {
             steps {
-                bat 'python --version'
+                bat '''
+                    if not exist "%PYTHON%" (
+                        echo Python executable not found!
+                        exit /b 1
+                    )
+
+                    "%PYTHON%" --version
+                '''
             }
         }
 
-        stage('Run Tests') {
+        stage('Checkout QA Automation') {
             steps {
-                echo 'Automation testing will start here'
+                dir('Qa_Testing_code') {
+                    git branch: 'main',
+                        url: 'https://github.com/Nomad8055/qa_testing_code.git'
+                }
             }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('Qa_Testing_code') {
+                    bat '''
+                        "%PYTHON%" -m pip install -r requirements.txt
+                    '''
+                }
+            }
+        }
+
+        stage('Install Playwright') {
+            steps {
+                dir('Qa_Testing_code') {
+                    bat '''
+                        "%PYTHON%" -m playwright install chromium
+                    '''
+                }
+            }
+        }
+
+        stage('Run Automation Tests') {
+            steps {
+                dir('Qa_Testing_code') {
+                    bat '''
+                        "%PYTHON%" -m pytest tests -v --tb=short --junitxml=pytest-results.xml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            junit(
+                allowEmptyResults: true,
+                testResults: 'Qa_Testing_code/pytest-results.xml'
+            )
+        }
+
+        success {
+            echo 'QA AUTOMATION PASSED'
+        }
+
+        failure {
+            echo 'QA AUTOMATION FAILED'
         }
     }
 }
