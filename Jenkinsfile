@@ -31,7 +31,7 @@ pipeline {
             steps {
                 dir('Qa_Testing_code') {
                     git branch: 'main',
-                        url: 'https://github.com/Nomad8055/qa_testing_code.git'
+                        url: 'https://github.com/Nomad8055/Qa_Testing_code.git'
                 }
             }
         }
